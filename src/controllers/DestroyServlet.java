@@ -13,16 +13,16 @@ import models.Task;
 import utils.DBUtil;
 
 /**
- * Servlet implementation class CreateServlet
+ * Servlet implementation class DestroyServlet
  */
-@WebServlet("/create")
-public class CreateServlet extends HttpServlet {
+@WebServlet("/destroy")
+public class DestroyServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
     /**
      * @see HttpServlet#HttpServlet()
      */
-    public CreateServlet() {
+    public DestroyServlet() {
         super();
         // TODO Auto-generated constructor stub
     }
@@ -33,21 +33,21 @@ public class CreateServlet extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		// TODO Auto-generated method stub
 	    String _token = (String)request.getParameter("_token");
-	    if(_token != null && _token.equals(request.getSession().getId())) {
-	        EntityManager em = DBUtil.createEntityManager();
+        if(_token != null && _token.equals(request.getSession().getId())) {
+            EntityManager em = DBUtil.createEntityManager();
 
-	        Task t = new Task();
+            Task t = em.find(Task.class, (Integer)(request.getSession().getAttribute("task_id")));
 
-	        String content = request.getParameter("content");
-	        t.setContent(content);
+            em.getTransaction().begin();
+            em.remove(t);
+            em.getTransaction().commit();
+            request.getSession().setAttribute("flush", "削除が完了しました。");
+            em.close();
 
-	        em.getTransaction().begin();
-	        em.persist(t);
-	        em.getTransaction().commit();
-	        request.getSession().setAttribute("flush", "登録が完了しました。");
-	        em.close();
+            request.getSession().removeAttribute("task_id");
 
-	        response.sendRedirect(request.getContextPath() + "/index");
-	    }
+            response.sendRedirect(request.getContextPath() + "/index");
+        }
 	}
+
 }
